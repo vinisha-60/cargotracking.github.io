@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargo Tracking System</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2980b9;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --light: #f8f9fa;
+            --dark: #333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #e9ecef;
+            border: none;
+            border-radius: 5px 5px 0 0;
+            font-weight: bold;
+        }
+
+        .tab.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .tab:not(:last-child) {
+            margin-right: 5px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .row .form-group {
+            flex: 1;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: var(--secondary);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-edit {
+            background-color: #f39c12;
+        }
+
+        .btn-delete {
+            background-color: var(--danger);
+        }
+
+        .btn-checkout {
+            background-color: var(--success);
+        }
+
+        .search {
+            margin-bottom: 15px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+
+        .active {
+            background-color: #ffe5e5;
+            color: #ff5050;
+        }
+
+        .completed {
+            background-color: #e5ffe5;
+            color: #27ae60;
+        }
+
+        .message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .loader {
+            display: none;
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid var(--primary);
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media screen and (max-width: 768px) {
+            .row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .actions button {
+                margin-bottom: 5px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                border-radius: 0;
+                margin-right: 0;
+                margin-bottom: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cargo Tracking System</h1>
+            <p>Manage and track cargo deliveries</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="openTab('entry')">Entry Form</button>
+            <button class="tab" onclick="openTab('records')">View Records</button>
+            <button class="tab" onclick="openTab('settings')">Settings</button>
+        </div>
+
+        <div id="entry" class="tab-content active">
+            <div class="card">
+                <form id="cargo-form">
+                    <div class="form-group">
+                        <label for="name">Driver Name</label>
+                        <input type="text" id="name" required placeholder="Enter driver name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" required min="18" max="100" placeholder="Enter age">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" required placeholder="Enter phone number">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="vehicle">Vehicle Number</label>
+                        <input type="text" id="vehicle" required placeholder="Enter vehicle number">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cargo">Number of Cargos</label>
+                        <input type="number" id="cargo" required min="1" placeholder="Enter number of cargos">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="time-in">Time In</label>
+                            <input type="datetime-local" id="time-in" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="time-out">Expected Time Out</label>
+                            <input type="datetime-local" id="time-out">
+                        </div>
+                    </div>
+                    
+                    <div id="status-msg" class="message"></div>
+                    
+                    <button type="submit" id="submit-btn">Submit Entry</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="records" class="tab-content">
+            <div class="card">
+                <div class="search">
+                    <input type="text" id="search" placeholder="Search by name, vehicle number, etc.">
+                    <button id="sync-btn" style="width: auto; margin-top: 10px;">
+                        Sync with Google Sheets
+                        <span id="loader" class="loader"></span>
+                    </button>
+                </div>
+                
+                <div class="table-container">
+                    <table id="cargo-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Vehicle</th>
+                                <th>Cargos</th>
+                                <th>Time In</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cargo-data">
+                            <!-- Data will be filled by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="settings" class="tab-content">
+            <div class="card">
+                <h2>Google Sheets Integration</h2>
+                <p>Configure your Google Sheets connection</p>
+                
+                <form id="sheets-form">
+                    <div class="form-group">
+                        <label for="sheet-id">Google Sheet ID</label>
+                        <input type="text" id="sheet-id" placeholder="Enter your Google Sheet ID" required>
+                        <small>Find in your Google Sheet URL: https://docs.google.com/spreadsheets/d/[YOUR_SHEET_ID]/edit</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sheet-name">Sheet Name</label>
+                        <input type="text" id="sheet-name" placeholder="E.g. Sheet1" value="Sheet1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="script-url">Google Apps Script URL</label>
+                        <input type="text" id="script-url" placeholder="Enter your deployed Apps Script URL" required>
+                        <small>URL of your deployed Google Apps Script Web App</small>
+                    </div>
+                    
+                    <button type="submit">Save Settings</button>
+                </form>
+                
+                <div style="margin-top: 20px;">
+                    <h3>Setup Instructions:</h3>
+                    <ol>
+                        <li>Create a new Google Sheet</li>
+                        <li>Add headers: ID, Name, Age, Phone, Vehicle, CargoCount, TimeIn, TimeOut, EntryTime, CheckoutTime, Status</li>
+                        <li>Go to Extensions > Apps Script</li>
+                        <li>Copy the Apps Script code (shown below)</li>
+                        <li>Deploy as web app (Anyone can access)</li>
+                        <li>Copy the deployment URL and paste it above</li>
+                    </ol>
+                    
+                    <details>
+                        <summary>View Apps Script Code</summary>
+                        <pre style="background-color: #f5f5f5; padding: 10px; overflow-x: auto; margin-top: 10px;">
+function doGet(e) {
+  return ContentService.createTextOutput("GET not supported");
+}
+
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const action = data.action;
+    const sheetName = data.sheetName || 'Sheet1';
+    
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    
+    if (!sheet) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        error: 'Sheet not found' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (action === 'addRecord') {
+      const record = data.record;
+      sheet.appendRow([
+        record.id,
+        record.name,
+        record.age,
+        record.phone,
+        record.vehicle,
+        record.cargoCount,
+        record.timeIn,
+        record.timeOut,
+        record.entryTime,
+        record.checkoutTime,
+        record.checkoutTime ? 'Completed' : 'Active'
+      ]);
+      
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        message: 'Record added successfully'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    else if (action === 'updateRecord') {
+      const record = data.record;
+      const id = record.id;
+      
+      const values = sheet.getDataRange().getValues();
+      for (let i = 0; i < values.length; i++) {
+        if (values[i][0] === id) {
+          sheet.getRange(i + 1, 2).setValue(record.name);
+          sheet.getRange(i + 1, 3).setValue(record.age);
+          sheet.getRange(i + 1, 4).setValue(record.phone);
+          sheet.getRange(i + 1, 5).setValue(record.vehicle);
+          sheet.getRange(i + 1, 6).setValue(record.cargoCount);
+          sheet.getRange(i + 1, 7).setValue(record.timeIn);
+          sheet.getRange(i + 1, 8).setValue(record.timeOut);
+          sheet.getRange(i + 1, 10).setValue(record.checkoutTime);
+          sheet.getRange(i + 1, 11).setValue(record.checkoutTime ? 'Completed' : 'Active');
+          
+          return ContentService.createTextOutput(JSON.stringify({
+            success: true,
+            message: 'Record updated successfully'
+          })).setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+      
+      return ContentService.createTextOutput(JSON.stringify({
+        success: false,
+        error: 'Record not found'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    else if (action === 'deleteRecord') {
+      const id = data.id;
+      
+      const values = sheet.getDataRange().getValues();
+      for (let i = 0; i < values.length; i++) {
+        if (values[i][0] === id) {
+          sheet.deleteRow(i + 1);
+          
+          return ContentService.createTextOutput(JSON.stringify({
+            success: true,
+            message: 'Record deleted successfully'
+          })).setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+      
+      return ContentService.createTextOutput(JSON.stringify({
+        success: false,
+        error: 'Record not found'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    else if (action === 'getAllRecords') {
+      const values = sheet.getDataRange().getValues();
+      const headers = values[0];
+      const records = [];
+      
+      for (let i = 1; i < values.length; i++) {
+        const record = {};
+        for (let j = 0; j < headers.length; j++) {
+          record[headers[j].toLowerCase()] = values[i][j];
+        }
+        records.push(record);
+      }
+      
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        records: records
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    else {
+      return ContentService.createTextOutput(JSON.stringify({
+        success: false,
+        error: 'Unknown action'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+  catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}</pre>
+                    </details>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize data storage
+        let records = JSON.parse(localStorage.getItem('cargoRecords')) || [];
+        let editingId = null;
+        let config = JSON.parse(localStorage.getItem('sheetsConfig')) || {
+            sheetId: '',
+            sheetName: 'Sheet1',
+            scriptUrl: ''
+        };
+
+        // DOM elements
+        const cargoForm = document.getElementById('cargo-form');
+        const cargoData = document.getElementById('cargo-data');
+        const searchInput = document.getElementById('search');
+        const submitBtn = document.getElementById('submit-btn');
+        const syncBtn = document.getElementById('sync-btn');
+        const loader = document.getElementById('loader');
+        const sheetsForm = document.getElementById('sheets-form');
+        const statusMsg = document.getElementById('status-msg');
+
+        // Set current date/time on load
+        window.onload = function() {
+            const now = new Date();
+            const timeIn = document.getElementById('time-in');
+            const timeOut = document.getElementById('time-out');
+            
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            timeIn.value = now.toISOString().slice(0, 16);
+            
+            // Set expected time out to 2 hours later
+            const later = new Date(now);
+            later.setHours(later.getHours() + 2);
+            timeOut.value = later.toISOString().slice(0, 16);
+            
+            // Load Google Sheets config
+            document.getElementById('sheet-id').value = config.sheetId;
+            document.getElementById('sheet-name').value = config.sheetName;
+            document.getElementById('script-url').value = config.scriptUrl;
+            
+            // Render table
+            renderTable();
+        };
+
+        // Tab functionality
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab[onclick="openTab('${tabId}')"]`).classList.add('active');
+        }
+
+        // Generate ID
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // Format date for display
+        function formatDate(dateStr) {
+            if (!dateStr) return "Not set";
+            const dt = new Date(dateStr);
+            return dt.toLocaleString();
+        }
+
+        // Save records to localStorage
+        function saveRecords() {
+            localStorage.setItem('cargoRecords', JSON.stringify(records));
+        }
+
+        // Save config
+        function saveConfig() {
+            localStorage.setItem('sheetsConfig', JSON.stringify(config));
+        }
+
+        // Show status message
+        function showMessage(message, isError = false) {
+            statusMsg.textContent = message;
+            statusMsg.className = 'message ' + (isError ? 'error' : 'success');
+            statusMsg.style.display = 'block';
+            
+            setTimeout(() => {
+                statusMsg.style.display = 'none';
+            }, 5000);
+        }
+
+        // Send data to Google Sheets
+        async function sendToSheets(action, data) {
+            if (!config.scriptUrl) {
+                return { success: false, error: 'Google Sheets URL not configured' };
+            }
+            
+            try {
+                const response = await fetch(config.scriptUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: action,
+                        sheetName: config.sheetName,
+                        ...data
+                    })
+                });
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error:', error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        // Fetch records from Google Sheets
+        async function syncRecords() {
+            loader.style.display = 'inline-block';
+            
+            try {
+                const result = await sendToSheets('getAllRecords', {});
+                
+                if (result.success) {
+                    records = result.records.map(record => ({
+                        id: record.id,
+                        name: record.name,
+                        age: record.age,
+                        phone: record.phone,
+                        vehicle: record.vehicle,
+                        cargoCount: record.cargocount,
+                        timeIn: record.timein,
+                        timeOut: record.timeout,
+                        entryTime: record.entrytime,
+                        checkoutTime: record.checkouttime
+                    }));
+                    
+                    saveRecords();
+                    renderTable();
+                    
+                    alert('Records successfully synced!');
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error syncing records.');
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        // Render table
+        function renderTable(filteredRecords = records) {
+            cargoData.innerHTML = '';
+            
+            if (filteredRecords.length === 0) {
+                cargoData.innerHTML = `<tr><td colspan="6" style="text-align: center;">No records found</td></tr>`;
+                return;
+            }
+
+            filteredRecords.forEach(record => {
+                const row = document.createElement('tr');
+                
+                const statusClass = record.checkoutTime ? 'completed' : 'active';
+                const statusText = record.checkoutTime ? 'Completed' : 'Active';
+                
+                row.innerHTML = `
+                    <td>${record.name}</td>
+                    <td>${record.vehicle}</td>
+                    <td>${record.cargoCount}</td>
+                    <td>${formatDate(record.timeIn)}</td>
+                    <td><span class="status ${statusClass}">${statusText}</span></td>
+                    <td class="actions">
+                        ${!record.checkoutTime ? `
+                            <button class="btn-edit" onclick="editRecord('${record.id}')">Edit</button>
+                            <button class="btn-checkout" onclick="checkoutRecord('${record.id}')">Check Out</button>
+                        ` : ''}
+                        <button class="btn-delete" onclick="deleteRecord('${record.id}')">Delete</button>
+                    </td>
+                `;
+                
+                cargoData.appendChild(row);
+            });
+        }
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            if (!searchTerm) {
+                renderTable();
+                return;
+            }
+            
+            const filtered = records.filter(record => {
+                return (
+                    record.name.toLowerCase().includes(searchTerm) ||
+                    record.vehicle.toLowerCase().includes(searchTerm) ||
+                    record.phone.includes(searchTerm)
+                );
+            });
+            
+            renderTable(filtered);
+        });
+
+        // Handle form submission
+        cargoForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const age = document.getElementById('age').value;
+            const phone = document.getElementById('phone').value;
+            const vehicle = document.getElementById('vehicle').value;
+            const cargoCount = document.getElementById('cargo').value;
+            const timeIn = document.getElementById('time-in').value;
+            const timeOut = document.getElementById('time-out').value;
+            
+            const record = {
+                name,
+                age,
+                phone,
+                vehicle,
+                cargoCount,
+                timeIn,
+                timeOut,
+                entryTime: new Date().toISOString(),
+                checkoutTime: null
+            };
+            
+            let result;
+            
+            if (editingId) {
+                // Update existing record
+                const index = records.findIndex(r => r.id === editingId);
+                if (index !== -1) {
+                    record.id = editingId;
+                    record.entryTime = records[index].entryTime;
+                    record.checkoutTime = records[index].checkoutTime;
+                    records[index] = record;
+                    
+                    // Update in Google Sheets if configured
+                    if (config.scriptUrl) {
+                        submitBtn.disabled = true;
+                        result = await sendToSheets('updateRecord', { record: record });
+                        submitBtn.disabled = false;
+                        
+                        if (!result.success) {
+                            showMessage('Warning: Updated locally but failed to update in Google Sheets: ' + result.error, true);
+                        } else {
+                            showMessage('Record updated successfully', false);
+                        }
+                    } else {
+                        showMessage('Record updated in local storage only', false);
+                    }
+                }
+                editingId = null;
+                submitBtn.textContent = 'Submit Entry';
+            } else {
+                // Add new record
+                record.id = generateId();
+                records.unshift(record); // Add to beginning of array
+                
+                // Add to Google Sheets if configured
+                if (config.scriptUrl) {
+                    submitBtn.disabled = true;
+                    result = await sendToSheets('addRecord', { record: record });
+                    submitBtn.disabled = false;
+                    
+                    if (!result.success) {
+                        showMessage('Warning: Added locally but failed to add to Google Sheets: ' + result.error, true);
+                    } else {
+                        showMessage('Record added successfully', false);
+                    }
+                } else {
+                    showMessage('Record added to local storage only', false);
+                }
+            }
+            
+            saveRecords();
+            renderTable();
+            this.reset();
+            
+            // Reset time inputs
+            const now = new Date();
+            const later = new Date(now);
+            later.setHours(later.getHours() + 2);
+            
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            later.setMinutes(later.getMinutes() - later.getTimezoneOffset());
+            
+            document.getElementById('time-in').value = now.toISOString().slice(0, 16);
+            document.getElementById('time-out').value = later.toISOString().slice(0, 16);
+        });
+
+        // Edit record
+        function editRecord(id) {
+            const record = records.find(r => r.id === id);
+            if (record) {
+                document.getElementById('name').value = record.name;
+                document.getElementById('age').value = record.age;
+                document.getElementById('phone').value = record.phone;
+                document.getElementById('vehicle').value = record.vehicle;
+                document.getElementById('cargo').value = record.cargoCount;
+                document.getElementById('time-in').value = record.timeIn.slice(0, 16);
+                document.getElementById('time-out').value = record.timeOut ? record.timeOut.slice(0, 16) : '';
+                
+                editingId = id;
+                submitBtn.textContent = 'Update Entry';
+                
+                openTab('entry');
+            }
+        }
+
+        // Delete record
+        async function deleteRecord(id) {
+            if (confirm('Are you sure you want to delete this record?')) {
+                const index = records.findIndex(r => r.id === id);
+                if (index !== -1) {
+                    const record = records[index];
+                    records.splice(index, 1);
+                    saveRecords();
+                    
+                    // Delete from Google Sheets if configured
+                    if (config.scriptUrl) {
+                        const result = await sendToSheets('deleteRecord', { id: id });
+                        if (!result.success) {
+                            alert('Warning: Deleted locally but failed to delete from Google Sheets: ' + result.error);
+                        }
+                    }
+                    
+                    renderTable();
+                }
+            }
+        }
+
+        // Checkout record
+        async function checkoutRecord(id) {
+            const index = records.findIndex(r => r.id === id);
+            if (index !== -1) {
+                records[index].checkoutTime = new Date().toISOString();
+                saveRecords();
+                
+                // Update in Google Sheets if configured
+                if (config.scriptUrl) {
+                    const result = await sendToSheets('updateRecord', { record: records[index] });
+                    if (!result.success) {
+                        alert('Warning: Updated locally but failed to update in Google Sheets: ' + result.error);
+                    }
+                }
+                
+                renderTable();
+            }
+        }
+
+        // Handle Google Sheets configuration form submission
+        sheetsForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            config.sheetId = document.getElementById('sheet-id').value;
+            config.sheetName = document.getElementById('sheet-name').value;
+            config.scriptUrl = document.getElementById('script-url').value;
+            
+            saveConfig();
+            
+            alert('Settings saved successfully!');
+        });
+
+        // Sync with Google Sheets
+        syncBtn.addEventListener('click', syncRecords);
+    </script>
+</body>
+</html>
